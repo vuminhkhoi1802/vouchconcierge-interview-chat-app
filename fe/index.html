@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      body { margin: 10px; }
+      form { display: flex; }
+      input { flex: 1; }
+      ul { list-style: none; padding: 0; }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div id="username-container">
+      <label for="username">Enter your username:</label>
+      <input type="text" id="username" />
+      <input id="room" placeholder="Enter Room ID" />
+      <button id="set-username-and-join-room">Set Username and Join Room</button>
+    </div>
+    <div id="chat-container" style="display:none;">
+        <h1 id="status-room" style="display: none;">Current User: <span id="current-user"></span>, Current Room: <span id="current-room"></span></h1>
+      <ul id="messages"></ul>
+      <form id="form" action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+      </form>
+    </div>
+    <!-- <script src="http://localhost:3000/socket.io/socket.io.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script>
+      // const socket = io('http://localhost:3000', {withCredentials: true,});
+      const socket = io('http://localhost:3002');
+      // const socket = io('http://10.12.0.20:3002');
+      const usernameContainer = document.getElementById('username-container');
+      const chatContainer = document.getElementById('chat-container');
+      const setUsernameButton = document.getElementById('set-username-and-join-room');
+      const form = document.querySelector('form');
+      const input = document.querySelector('#m');
+      const ul = document.querySelector('#messages');
+      const roomInput = document.querySelector('#room');
+      const usernameInput = document.getElementById('username');
+
+      setUsernameButton.addEventListener('click', () => {
+        const username = usernameInput.value.trim();
+        const roomId = roomInput.value.trim();
+        if (username && roomId) {
+          socket.emit('join-room', {
+              roomId,
+              username
+          });
+        }
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const roomId = roomInput.value.trim();
+        if (roomId && input.value) {
+          socket.emit('chat-message', { roomId, message: input.value });
+          input.value = '';
+        }
+      });
+
+      socket.on('chat-message', (msg) => {
+          console.log('chat-message', msg);
+          const roomId = roomInput.value.trim()
+          if (roomId == msg.roomId) {
+            const li = document.createElement('li');
+            li.textContent = msg.msg;
+            ul.appendChild(li);
+          }
+      });
+
+      socket.on('room-joined', (msg) => {
+          console.log('room joined', msg);
+          document.getElementById('status-room').style.display = 'block';
+          document.getElementById('current-user').innerHTML = msg.username;
+          document.getElementById('current-room').innerHTML = msg.roomId;
+          const chatContainer = document.getElementById('chat-container');
+          chatContainer.style.display = 'block';
+          usernameContainer.style.display = 'none';
+
+          socket.emit('load-chat-message', {roomId: 'r1', seqId: 1700616054081, count: 6})
+      });
+
+      socket.on('room-join-failed', (msg) => {
+          console.log('room join failed', msg);
+          alert(msg.msg)
+      });
+
+      socket.on('lst-messages-loaded', (payload) => {
+        // let messages = payload.messages
+        console.log('messages payload', payload);
+        // const roomId = msg.value.trim()
+        //   if (roomId == msg.roomId) {
+        //     const li = document.createElement('li');
+        //     li.textContent = msg.msg;
+        //     ul.appendChild(li);
+        //   }
+        })
+    </script>
+
+    <script>
+      // $.ajax({
+      //   url: 'http://localhost:3000/ahihi',
+      //   type: 'GET',
+      //   success: function (res) {
+      //     console.log(res);
+      //   },
+      //   error: function (err) {
+      //     console.log(err);
+      //   },
+      // })
+    </script>
+  </body>
+</html>

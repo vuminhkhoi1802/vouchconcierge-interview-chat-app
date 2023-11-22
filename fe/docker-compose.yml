@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  nextjs-app:
+    container_name: my-nextjs-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production  # Adjust environment variables as needed
+    volumes:
+      - .:/app  # Mount the current directory as a volume inside the container
+    working_dir: /app
