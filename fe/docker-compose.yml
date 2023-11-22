@@ -12,4 +12,7 @@ services:
       NODE_ENV: production  # Adjust environment variables as needed
     volumes:
       - .:/app  # Mount the current directory as a volume inside the container
+      # https://stackoverflow.com/questions/77519270/problem-with-deploying-next-js-app-on-docker
+      # - /app/node_modules
+      - /app/.next
     working_dir: /app
